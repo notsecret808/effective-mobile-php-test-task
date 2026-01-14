@@ -10,4 +10,4 @@ Route::get('/user', function (Request $request) {
 
 Route::get('/hello{id}', [TaskController::class, 'test']);
 
-Router::resource('tasks', TaskController::class);
+Route::resource('tasks', TaskController::class);

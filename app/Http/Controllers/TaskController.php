@@ -2,16 +2,31 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Task;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Validator;
 
 class TaskController extends Controller
 {
+    public function rulesValidator(array $data) {
+        return Validator::make(
+            $data,
+            [
+                'title' => ['required', 'min:1', 'max:256'],
+                'description' => ['nullable', 'max:12000'],
+                'status' => ['required', Rule::in('active', 'finished')]
+            ]
+            );
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        //
+        $tasks = Task::all();
+
+        return response()->json($tasks);
     }
 
     /**
@@ -27,7 +42,19 @@ class TaskController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validator = $this->rulesValidator($request->all());
+        
+        if ($validator->fails()) {
+            return response($validator->errors(), 400);
+        }
+
+        $validated = $validator->validated();
+
+        $task = new Task();
+        $task->fill($validated);
+        $task->save();
+
+        return response($validated, 200);
     }
 
     /**
@@ -35,7 +62,9 @@ class TaskController extends Controller
      */
     public function show(string $id)
     {
-        //
+        $task = Task::findOrFail($id);
+
+        return $task;
     }
 
     /**
