@@ -11,12 +11,4 @@ class Task extends Model
         "description",
         "status"
     ];
-
-    protected function casts(): array {
-        return [
-            "title" => "string",
-            "description" => "string",
-            "status" => "string"
-        ];
-    }
 }

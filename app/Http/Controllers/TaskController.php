@@ -3,22 +3,17 @@
 namespace App\Http\Controllers;
 
 use App\Models\Task;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
 
 class TaskController extends Controller
 {
-    public function rulesValidator(array $data) {
-        return Validator::make(
-            $data,
-            [
-                'title' => ['required', 'min:1', 'max:256'],
-                'description' => ['nullable', 'max:12000'],
-                'status' => ['required', Rule::in('active', 'finished')]
-            ]
-            );
+    protected function getNotFoundError(string $id) {
+        return "Task {$id} is not found";
     }
+
     /**
      * Display a listing of the resource.
      */
@@ -30,31 +25,28 @@ class TaskController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        $validator = $this->rulesValidator($request->all());
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'title' => ['required', 'max:256','string'],
+                'description' => ['nullable', 'max:12000','string'],
+                'status' => ['required', Rule::in('active', 'finished')]
+            ]
+        );
         
         if ($validator->fails()) {
             return response($validator->errors(), 400);
         }
 
-        $validated = $validator->validated();
-
         $task = new Task();
-        $task->fill($validated);
+        $task->fill($validator->validated());
         $task->save();
 
-        return response($validated, 200);
+        return response(["message" => "Task {$task->id} is created"], 200);
     }
 
     /**
@@ -62,17 +54,15 @@ class TaskController extends Controller
      */
     public function show(string $id)
     {
-        $task = Task::findOrFail($id);
+        try {
+            $task = Task::findOrFail($id);
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'message' => $this->getNotFoundError($id),
+            ], 404);
+        }
 
         return $task;
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(string $id)
-    {
-        //
     }
 
     /**
@@ -80,7 +70,34 @@ class TaskController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        $validator = Validator::make(
+            $request->all(),
+            [
+                'title' => ['sometimes','required', 'max:256', 'string'],
+                'description' => ['sometimes','required', 'max:12000', 'string'],
+                'status' => ['sometimes', 'required', Rule::in('active', 'finished')]
+            ]
+        );
+        
+        if ($validator->fails()) {
+            return response($validator->errors(), 400);
+        }
+
+        try {
+            $task = Task::findOrFail($id);
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'message' => $this->getNotFoundError($id),
+                404
+            ]);
+        }
+    
+        $validated = $validator->validated();
+
+        $task->update($validated);
+        $task->save();
+
+        return response(["message" => "Task {$id} is updated"], 200);
     }
 
     /**
@@ -88,6 +105,16 @@ class TaskController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        try {
+            $task = Task::findOrFail($id);
+        } catch(ModelNotFoundException $e) {
+            return response()->json([
+                'message' => $this->getNotFoundError($id),
+            ], 404);
+        }
+
+        $task->delete();
+
+        return response(['message' => "Task {$id} is deleted"], 200);
     }
 }

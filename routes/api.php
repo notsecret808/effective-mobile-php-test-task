@@ -8,6 +8,5 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::get('/hello{id}', [TaskController::class, 'test']);
-
-Route::resource('tasks', TaskController::class);
+Route::resource('tasks', TaskController::class)
+    ->except(['edit', 'create']);
