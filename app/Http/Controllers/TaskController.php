@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Validator;
+use App\Enums\Status;
 
 class TaskController extends Controller
 {
@@ -34,7 +35,7 @@ class TaskController extends Controller
             [
                 'title' => ['required', 'max:256','string'],
                 'description' => ['nullable', 'max:12000','string'],
-                'status' => ['required', Rule::in('active', 'finished')]
+                'status' => ['required', Rule::in(Status::Active, Status::Finished)]
             ]
         );
         
@@ -75,7 +76,7 @@ class TaskController extends Controller
             [
                 'title' => ['sometimes','required', 'max:256', 'string'],
                 'description' => ['sometimes','required', 'max:12000', 'string'],
-                'status' => ['sometimes', 'required', Rule::in('active', 'finished')]
+                'status' => ['sometimes', 'required', Rule::in(Status::Active, Status::Finished)]
             ]
         );
         
