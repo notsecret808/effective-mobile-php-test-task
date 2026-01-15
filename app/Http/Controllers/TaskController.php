@@ -47,7 +47,7 @@ class TaskController extends Controller
         $task->fill($validator->validated());
         $task->save();
 
-        return response(["message" => "Task {$task->id} is created"], 200);
+        return response(["message" => "Task {$task->id} is created"], 201);
     }
 
     /**
